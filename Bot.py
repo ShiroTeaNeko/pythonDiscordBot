@@ -76,4 +76,4 @@ if __name__ == '__main__':
             print(' Extension non chargé {}\n{}'.format(extension, exc))
 
 
-bot.run('NTIyODI5MjQ3MjMyODY4Mzgz.DxZ21A.yUyBnf89MoJ4lPHBOxkW0AIrCRw')
+bot.run('TOKEN')
