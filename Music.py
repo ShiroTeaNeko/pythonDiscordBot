@@ -1,6 +1,7 @@
 import asyncio
 import discord
 from discord.ext import commands
+
 if not discord.opus.is_loaded():
     # the 'opus' library here is opus.dll on windows
     # or libopus.so on linux in the current directory
@@ -9,8 +10,10 @@ if not discord.opus.is_loaded():
     # note that on windows this DLL is automatically provided for you
     discord.opus.load_opus('opus')
 
+
 def __init__(self, bot):
-        self.bot = bot
+    self.bot = bot
+
 
 class VoiceEntry:
     def __init__(self, message, player):
@@ -25,6 +28,7 @@ class VoiceEntry:
             fmt = fmt + ' [longueur: {0[0]}m {0[1]}s]'.format(divmod(duration, 60))
         return fmt.format(self.player, self.requester)
 
+
 class VoiceState:
     def __init__(self, bot):
         self.current = None
@@ -32,7 +36,7 @@ class VoiceState:
         self.bot = bot
         self.play_next_song = asyncio.Event()
         self.songs = asyncio.Queue()
-        self.skip_votes = set() # a set of user_ids that voted
+        self.skip_votes = set()  # a set of user_ids that voted
         self.audio_player = self.bot.loop.create_task(self.audio_player_task())
 
     def is_playing(self):
@@ -61,10 +65,13 @@ class VoiceState:
             await self.bot.send_message(self.current.channel, '''Et c'est parti pour ''' + str(self.current))
             self.current.player.start()
             await self.play_next_song.wait()
-class Music:
+
+
+class Music(commands.Cog):
     """Voice related commands.
     Works in multiple servers at once.
     """
+
     def __init__(self, bot):
         self.bot = bot
         self.voice_states = {}
@@ -91,19 +98,19 @@ class Music:
             except:
                 pass
 
-    @commands.command(pass_context=True, no_pm=True)
-    async def join(self, ctx, *, channel : discord.Channel):
+    @commands.Cog.listener()
+    async def join(self, ctx, *, channel: discord.channel):
         """Je vous rejoins faite moi de la place ☆⌒ヽ(*'､^*)chu"""
         try:
             await self.create_voice_client(channel)
-        except discord.ClientException:
-            await self.bot.say('Je suis deja là (⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄)')
         except discord.InvalidArgument:
             await self.bot.say('''ce n'est pas un channel sonore''')
+        except discord.ClientException:
+            await self.bot.say('Je suis deja là (⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄)')
         else:
             await self.bot.say('Je suis prête à jouer du son sur le channel onii-chan')
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.Cog.listener()
     async def summon(self, ctx):
         """Vous m'invoquez sur votre channel"""
         summoned_channel = ctx.message.author.voice_channel
@@ -119,8 +126,8 @@ class Music:
 
         return True
 
-    @commands.command(pass_context=True, no_pm=True)
-    async def play(self, ctx, *, song : str):
+    @commands.Cog.listener()
+    async def play(self, ctx, *, song: str):
         """Joue de la musique 	♪ヽ(^^ヽ)♪.
         If there is a song currently in the queue, then it is
         queued until the next song is done playing.
@@ -151,8 +158,8 @@ class Music:
             await self.bot.say('Enqueued ' + str(entry))
             await state.songs.put(entry)
 
-    @commands.command(pass_context=True, no_pm=True)
-    async def volume(self, ctx, value : int):
+    @commands.Cog.listener()
+    async def volume(self, ctx, value: int):
         """Je change le volume de la musique joué 	╮(￣ω￣;)╭"""
 
         state = self.get_voice_state(ctx.message.server)
@@ -160,7 +167,8 @@ class Music:
             player = state.player
             player.volume = value / 100
             await self.bot.say('Set the volume to {:.0%}'.format(player.volume))
-    @commands.command(pass_context=True, no_pm=True)
+
+    @commands.Cog.listener()
     async def resume(self, ctx):
         """Je vous remet la musique que vous aviez stop (≧◡≦) ♡"""
         state = self.get_voice_state(ctx.message.server)
@@ -168,7 +176,7 @@ class Music:
             player = state.player
             player.resume()
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.Cog.listener()
     async def stop(self, ctx):
         """j'arrete de jouer du son et je vous laisse tranquille (⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄).
         This also clears the queue.
@@ -180,7 +188,6 @@ class Music:
             player = state.player
             player.stop()
 
-
         try:
             state.audio_player.cancel()
             del self.voice_states[server.id]
@@ -191,12 +198,12 @@ class Music:
 
     # @commands.command(pass_context=True, no_pm=True)
     # async def pause(self, ctx):
-        # state = self.get_voice_state(ctx.message.server)
-        # if state.is_playing():
-            # player = state.player
-            # player.
+    # state = self.get_voice_state(ctx.message.server)
+    # if state.is_playing():
+    # player = state.player
+    # player.
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.Cog.listener()
     async def skip(self, ctx):
         """+1 vote pour passer la musique. Le requester peut passer directement
         3 skip votes are needed for the song to be skipped.
@@ -222,7 +229,7 @@ class Music:
         else:
             await self.bot.say('Vous avez deja voté pour passer le son.')
 
-    @commands.command(pass_context=True, no_pm=True)
+    @commands.Cog.listener()
     async def playing(self, ctx):
         """Montre quel son est actuellement joué (〜￣△￣)〜."""
 
@@ -232,7 +239,8 @@ class Music:
         else:
             skip_count = len(state.skip_votes)
             await self.bot.say('Joue désormais {} [skips: {}/2]'.format(state.current, skip_count))
-            
+
+
 def setup(bot):
     bot.add_cog(Music(bot))
     print('Musique chargée (*^^*)♡')
