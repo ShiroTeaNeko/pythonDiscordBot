@@ -7,3 +7,5 @@ A code that can search and send a random image from a site (random pages, random
 You can also add tags to search things you want
 
 their is also a music thing that can search and play music from youtube on a channel(most of the code was already made by someone, i just test things around)
+
+I added a command that can give stats of a certain player of Osu!
